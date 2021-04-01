@@ -25,7 +25,7 @@ class createDFAForm(FlaskForm):
 
 	start_state = SelectField("Start State", choices = [("", "")])
 
-	accept_states = MultiCheckboxField('Accept States')
+	accept_states = MultiCheckboxField('Accepting States')
 
 	# will be 
 	transitions =  FieldList(FormField(DFAStateTransitionForm), min_entries=1)
