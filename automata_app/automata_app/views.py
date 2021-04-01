@@ -1,8 +1,9 @@
 from automata_app import app
 from flask import render_template, jsonify, request, url_for, redirect
-from graphviz import *
 from automata_app.forms import *
 from collections import defaultdict
+from automata_app.DFA import *
+
 
 @app.route("/")
 @app.route("/home")
@@ -25,40 +26,20 @@ def createDFA():
 
 	if request.method == "POST":
 
-		g = Digraph()
-
 
 		dfa_states = states.split(",")
 		alphabet = alphabet.split(",")
 
-		print(accept_states)
-
-		if start_state in accept_states:
-			g.node(start_state, shape='doublecircle', color='green', style='filled')
-		else:
-			g.node(start_state, color='green', style='filled')
-
-		for s in accept_states:
-			if s != start_state:
-				g.node(s, shape='doublecircle')
-
-		for s in dfa_states:
-			if s not in accept_states and s != start_state:
-				g.node(s, s)
-
-		edges = defaultdict(list)
+		transitions = {}
 		for t in form.transitions.data:
-			edges[(t["source_state"],t["destination_state"])].append(t["transition"])
+			transitions[(t["source_state"],t["transition"])] = t["destination_state"]
 
-		for k, v in edges.items():
-			label = "  " + ", ".join(v)
-			g.edge(k[0],k[1], label)
-				
+		dfa = DFA(dfa_states, alphabet, transitions, start_state, accept_states)
+		
+		graph = dfa.get_svg()
 
-		g = g.unflatten()
 
-		graph = g.pipe(format='svg').decode('utf-8')
-
+		# fill form back out
 		form.start_state.choices = [(s, s) for s in dfa_states]
 		form.accept_states.choices = [(s, s) for s in dfa_states]
 
