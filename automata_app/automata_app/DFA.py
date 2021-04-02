@@ -20,9 +20,8 @@ class DFA:
 		if current is None:
 			current = self.current
 
-		if self.current:
-			if (self.current, letter) in self.transitions:
-				return self.transitions[(self.current, letter)]
+		if (current, letter) in self.transitions:
+			return self.transitions[(current, letter)]
 
 		return None
 
@@ -38,12 +37,16 @@ class DFA:
 		path = [start]
 		curr = start
 		for s in string:
+			print(s)
+			print(curr)
 			next_state = self.next_state(s, curr)
-			if next_state:
+			print(next_state)
+			print()
+			if next_state :
 				path.append(next_state)
 				curr = next_state
 			else:
-				break
+				return (False, path)
 
 		if curr in self.accept:
 			return (True, path)
@@ -60,7 +63,6 @@ class DFA:
 			for curr_set in new_P:
 				for letter in self.alphabet:
 					I = set()
-					print(letter)
 					for s in curr_set:
 						if (s, letter) in self.inverse_trans:
 							for x in self.inverse_trans[(s, letter)]:
@@ -109,27 +111,53 @@ class DFA:
 						if str(self.transitions[(orig_state, l)]) in poss_dest:
 							new_transitions[(s, l)] = poss_dest
 
-
 		minimized_DFA = DFA(new_state_names, self.alphabet, new_transitions, new_start, new_accept)
 		return minimized_DFA
 
 
-	def get_viz(self):
+	# draws the current node green
+	# if stopped draws current node red
+	# if completed draws current node green
+	def get_viz(self, current = None, stopped = False, completed = False):
 
 		g = Digraph()
 
-		if self.start in self.accept:
-			g.node(start, shape='doublecircle', color='green', style='filled')
+		if stopped:
+			color = 'red'
 		else:
-			g.node(start, color='green', style='filled')
+			if completed:
+				color = 'green'
+			else:
+				color = 'yellow'
+
+
+		if current is None or current == self.start:
+			start_color = color
+			if self.start in self.accept:
+				g.node(self.start, shape='doublecircle', color=start_color, style='filled')
+			else:
+				g.node(self.start, color=start_color, style='filled')
+
+		else:
+			if self.start in self.accept:
+				g.node(self.start, shape='doublecircle')
+			else:
+				g.node(self.start)
+
 
 		for s in self.accept:
 			if s != self.start:
-				g.node(s, shape='doublecircle')
+				if s == current:
+					g.node(s, color = color, shape='doublecircle', style='filled')
+				else:
+					g.node(s, shape='doublecircle')
 
 		for s in self.states:
 			if s not in self.accept and s != self.start:
-				g.node(s, s)
+				if s == current:
+					g.node(s, s, color=color, style='filled')
+				else:
+					g.node(s, s)
 
 		edges = defaultdict(list)
 		for k, v in self.transitions.items():
@@ -142,9 +170,9 @@ class DFA:
 		return g
 
 
-	def get_svg(self):
+	def get_svg(self, current = None, stopped = False, completed = False):
 
-		viz = self.get_viz()
+		viz = self.get_viz(current, stopped, completed)
 		g = viz.unflatten()
 		return g.pipe(format='svg').decode('utf-8')
 
@@ -162,7 +190,6 @@ transitions = {("0", "a"): "1", ("0", "b"): "4",
 start = "0"
 accept = ["2"]
 dfa = DFA(states, alphabet, transitions, start, accept)
-
 
 
 
