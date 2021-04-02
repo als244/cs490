@@ -4,28 +4,29 @@
 
 {% block content %} 
 <p></p>
+<form method="POST">
+{{ form.csrf_token }}
 <div class="container">
-	<div class="jumbotron">
-		<h1>DFA</h1>
-	
-		<p></p>
+	<div class="card">
+		<div class="card-header">
+			Create DFA
+		</div>
 		
-		<form method="POST">
-
-			{{ form.csrf_token }}
+		<div class="card-body">
+		
 			<div class="row">
 				<div class="col-auto">
 					<div class="form-group">
 						{{ form.states.label(class="form-control-label") }}
-						{{ form.states(class="form-control form-control") }}
+						{{ form.states(class="form-control") }}
 					</div>
 					<div class="form-group">
 						{{ form.alphabet.label(class="form-control-label") }}
-						{{ form.alphabet(class="form-control form-control") }}
+						{{ form.alphabet(class="form-control") }}
 					</div>
 					<div class="form-group">
 						{{ form.start_state.label(class="form-control-label") }}
-						{{ form.start_state(class="form-control form-control") }}
+						{{ form.start_state(class="form-control") }}
 					</div>
 					<div class="form-group">
 						{{ form.accept_states.label(class="form-control-label") }}
@@ -34,73 +35,175 @@
 				</div>
 				<div class="col-auto">
 					Transitions:
-					<br>
+					<br></br>
 					<div data-toggle="fieldset" id="transition-fieldset">
-						<table class="table">
-							<tr>
+						<table class="table table-bordered" id="transitions">
+							<tr id="transition_headers">
 								<th> Source State </th>
-								<th> Transition </th>
-								<th> Destination State </th>
-								<th> Delete </th>
 							</tr>
-						{% for trans_form in form.transitions %}
-						<tr data-toggle="fieldset-entry" id="transition_rule" class="transitions">
-							<td> {{trans_form.source_state(class="form-control")}} </td>
-							<td> {{trans_form.transition(class="form-control")}} </td>
-							<td> {{trans_form.destination_state(class="form-control")}} </td>
-							<td> <button type="button" class="btn btn-link" data-toggle="fieldset-remove-row" id="transition-{{loop.index0}}-remove">-</button></td>
-							</tr>
-						{% endfor %}
 						</table>
-							<button type="button" class="btn btn-link" data-toggle="fieldset-add-row" data-target="#transition-fieldset">Add Transition</button>
 					</div>
 				</div>
 			</div>
 			<div class="row justify-content-center">
 				<div class="col-xs-1 center block">
 					<div class="form-group">
-						{{ form.submit(class="btn btn-outline-info") }}
+						{{ form.create(class="btn btn-outline-info") }}
 					</div>
 				</div>
 			</div>
-		</form>
-	</div>
-</div>
-
-<div class="container">
-	<div class="row justify-content-center">
-		<div class="col-xs-1 center block">
-			{{graph|safe}}
+			{% if graph %}
+			<div class="row justify-content-center">
+				<div class="col-xs-1 center block">
+					<div class="form-group">
+						{{ form.minimize(class="btn btn-outline-info") }}
+					</div>
+				</div>
+			</div>
+			{% endif %}
 		</div>
 	</div>
 </div>
+
+
+
+{% if graph %}
+
+
+<div class="container">
+	<div class="row">
+		<div class="col">
+			<div class="card">
+				<div class="card-header"> 
+					Graph
+				 </div>
+				<div class="card-body text-center">
+					{{graph|safe}}
+				</div>
+			</div>
+		</div>
+		{% if minimized_graph %}
+		<div class="col">
+			<div class="card">
+				<div class="card-header"> 
+					Minimized Graph 
+				</div>
+				<div class="card-body text-center">
+					{{minimized_graph|safe}}
+				</div>
+			</div>
+		</div>
+		{% endif %}
+	</div>
+</div>
+
+
+
+<div class="container">
+	<div class="card">
+		<div class="card-header">
+		 	Simulate
+		</div>
+		<div class="card-body">
+
+			<div class="row">
+				<div class="col-auto">	
+					<div class="form-group form-inline">		
+						{{ form.string_input.label(class="form-control-label mr-sm-2")}}
+						{{ form.string_input(class="form-control mr-sm-2")}}
+						{{ form.remaining.label(class="form-control-label mr-sm-2")}}
+						{{ form.remaining(readonly=True, class="form-control mr-sm-2")}}
+						{{ form.path.label(class="form-control-label mr-sm-2")}}
+						{{ form.path(readonly=True, class="form-control mr-sm-2")}}
+						{{ form.result.label(class="form-control-label mr-sm-2")}}
+						{{ form.result(readonly=True, class="form-control mr-sm-2")}}
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center">
+				<div class="col-xs-1 center block">
+					<div class="form-group">
+						{{ form.step(class="btn btn-outline-info") }}
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center">
+				<div class="col-xs-1 center block">
+					<div class="form-group">
+						{{ form.simulate(class="btn btn-outline-info") }}
+					</div>
+				</div>
+			</div>
+			<div class="row justify-content-center">
+				<div class="col-xs-1 center block">
+					<div class="form-group">
+						{{ form.reset(class="btn btn-danger") }}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
+
+
+{% endif %}
+</form>
+
+
 
 <script>
 
 	var states = document.getElementById("states");
 	var start_state = document.getElementById("start_state");
 	var alphabet = document.getElementById("alphabet");
-	function init_page(){
+	var transitions = document.getElementById("transitions");
+	var transitions_headers = document.getElementById("transition_headers");
+	var result = document.getElementById("result");
+	var reload_trans = true;
+	var string_input = document.getElementById("string_input");
+	var step_btn = document.getElementById("step");
+	var simulate_btn = document.getElementById("simulate");
 
+
+	function init_page(){
+		alphabet_change();
+		state_rows();
+
+		toggle_sim_buttons();
+		
+	}
+
+
+	function state_change(){
+
+		state_select();
+		state_rows();
+	}
+
+	function alphabet_change(){
+		
+		alphabet_headers();
+		state_rows();
 
 	}
 
-	function alphabet_select(){
-		var alphabet_arr = alphabet.value.split(",");
-		var optionHTML = "";
-		for (var a of alphabet_arr){
-			optionHTML += '<option value=' + a + '>' + a + '</option>';
-		}
-		for (var i = 0; i < 100; i++){
-			var transition_letter_id = "transitions-" + i + "-transition";
-			var transition_letter = document.getElementById(transition_letter_id);
-			if (transition_letter !== null){
-				transition_letter.innerHTML = optionHTML;
-			}
-			else{
-				break;
-			}
-		}
+	function string_input_change(){
+
+		step_btn.disabled = string_input.value.length == 0 ? true : false;
+		simulate_btn.disabled = string_input.value.length == 0 ? true : false;
+
+	}
+
+	function toggle_sim_buttons(){
+
+		step_btn.disabled = ((result.value.length > 0) || (string_input.value.length == 0)) ? true : false;
+		simulate_btn.disabled = ((result.value.length > 0) || (string_input.value.length == 0)) ? true : false;
 	}
 
 
@@ -117,59 +220,71 @@
 
 		start_state.innerHTML = startHTML;
 		accept_states.innerHTML = acceptHTML;
+	}
 
-		for (var i = 0; i < 100; i++){
-			var source_state_id = "transitions-" + i + "-source_state";
-			var dest_state_id = "transitions-" + i + "-destination_state";
+	function state_rows() {
 
-			var source_state = document.getElementById(source_state_id);
-			var dest_state = document.getElementById(dest_state_id);
-			if (source_state !== null){
-				source_state.innerHTML = startHTML;
-				dest_state.innerHTML = startHTML;
+
+		var states_arr = states.value.split(",");
+		var alphabet_arr = alphabet.value.split(",");
+
+
+		var n_rows = transitions.rows.length;
+
+		if (reload_trans){
+			var old_trans = {{transitions | tojson }};
+			reload_trans = false;
+		}
+		else{
+			var old_trans = {};
+		}
+		
+		// clear table
+		for (var i = 1; i < n_rows; i++){
+			for (var j = 1; j < transitions.rows[0].cells.length; j++){
+				console.log(transitions.rows[0])
+				if (transitions.rows[1].cells[j] && transitions.rows[1].cells[j].childNodes[0]){
+					console.log(transitions.rows[1].cells[j].childNodes[0].id);
+					old_trans[transitions.rows[1].cells[j].childNodes[0].id] = transitions.rows[1].cells[j].childNodes[0].value;
+					console.log(transitions.rows[1].cells[j].childNodes[0].value);
+				}
+				
 			}
-			else{
-				break;
+			transitions.deleteRow(1);
+		}
+
+		for (var i = 1; i < states_arr.length + 1; i++){
+			var row = transitions.insertRow(i);
+			var cell = row.insertCell(0);
+			cell.innerHTML = states_arr[i - 1];
+			for (var j = 1; j < alphabet_arr.length + 1; j++){
+				cell = row.insertCell(j);
+				var old_val = "";
+				if ((states_arr[i - 1] + ";" + alphabet_arr[j - 1]) in old_trans){
+					old_val = old_trans[states_arr[i - 1] + ";" + alphabet_arr[j - 1]];
+				}
+				cell.innerHTML = '<input type=text id= "' + states_arr[i - 1] + ';' + alphabet_arr[j - 1] + '" name="' + states_arr[i - 1] + ';' + alphabet_arr[j - 1] + '" class="form-control col-xs-2" value="' + old_val + '">';
 			}
 		}
 	}
 
-	states.onchange = state_select;
-	alphabet.onchange = alphabet_select;
+
+	function alphabet_headers(){
+		var alphabet_arr = alphabet.value.split(",");
+		var headerHTML = "<th> Source State </th>";	
+		for (var s of alphabet_arr){
+			headerHTML += "<th>" + s + "</th>";
+		}
+		transition_headers.innerHTML = headerHTML;
+	}
+
+
+	states.onchange = state_change;
+	alphabet.onchange = alphabet_change;
+	string_input.onchange = string_input_change;
 
 	window.onload = init_page;
 
-	$(function() {
-    $("div[data-toggle=fieldset]").each(function() {
-        var $this = $(this);
-            
-        //Add new entry
-        $this.find("button[data-toggle=fieldset-add-row]").click(function() {
-            var target = $($(this).data("target"))
-            console.log(target);
-            var oldrow = target.find("[data-toggle=fieldset-entry]:last");
-            var row = oldrow.clone(true, true);
-            console.log(row.find(":input")[0]);
-            var elem_id = row.find(":input")[0].id;
-            var elem_num = parseInt(elem_id.replace(/.*-(\d{1,4}).*/m, '$1')) + 1;
-            row.attr('data-id', elem_num);
-            row.find(":input").each(function() {
-                console.log(this);
-                var id = $(this).attr('id').replace('-' + (elem_num - 1) + '-', '-' + (elem_num) + '-');
-                $(this).attr('name', id).attr('id', id).val('').removeAttr("checked");
-            });
-            oldrow.after(row);
-        }); //End add new entry
-
-        //Remove row
-        $this.find("button[data-toggle=fieldset-remove-row]").click(function() {
-            if($this.find("[data-toggle=fieldset-entry]").length > 1) {
-                var thisRow = $(this).closest("[data-toggle=fieldset-entry]");
-                thisRow.remove();
-            }
-        }); //End remove row
-    });
-});
 
 </script>
 
