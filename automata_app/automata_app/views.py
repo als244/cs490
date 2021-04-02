@@ -10,10 +10,10 @@ from automata_app.DFA import *
 def home():
 	return render_template('index.html')
 
-@app.route("/dfa/create", methods=["GET", "POST"])
+@app.route("/dfa", methods=["GET", "POST"])
 def createDFA():
 
-	form = createDFAForm()
+	form = DFAForm()
 
 	states = form.states.data
 	alphabet = form.alphabet.data
@@ -27,30 +27,119 @@ def createDFA():
 	if request.method == "POST":
 
 
+		print(request.form)
+
+
 		dfa_states = states.split(",")
-		alphabet = alphabet.split(",")
-
-		transitions = {}
-		for t in form.transitions.data:
-			transitions[(t["source_state"],t["transition"])] = t["destination_state"]
-
-		dfa = DFA(dfa_states, alphabet, transitions, start_state, accept_states)
-		
-		graph = dfa.get_svg()
-
 
 		# fill form back out
 		form.start_state.choices = [(s, s) for s in dfa_states]
 		form.accept_states.choices = [(s, s) for s in dfa_states]
 
-		for trans_form in form.transitions:
-			trans_form.source_state.choices = [(s, s) for s in dfa_states]
-			trans_form.destination_state.choices = [(s, s) for s in dfa_states]
-			trans_form.transition.choices = [(a, a) for a in alphabet]
+		alphabet = alphabet.split(",")
 
-		return render_template('dfa.html', form = form, graph=graph)
+		transitions = {}
+		html_transitions = {}
+		for s in dfa_states:
+			for l in alphabet:
+				rule_id = s + ";" + l
+				if len(request.form[rule_id]) > 0:
+					transitions[(s, l)] = request.form[rule_id]
+					html_transitions[rule_id] = request.form[rule_id]
 
-	return render_template('dfa.html', form = form)
+
+
+		dfa = DFA(dfa_states, alphabet, transitions, start_state, accept_states)
+		
+
+		graph = dfa.get_svg()
+		minimized_graph = None
+
+		if form.minimize.data:
+
+			minimized_dfa = dfa.moore_reduction()
+			minimized_graph = minimized_dfa.get_svg()
+
+
+		elif form.step.data:
+
+
+			inp = form.string_input.data
+
+			remaining = form.remaining.data
+			path = form.path.data.split(",")
+
+			# the first step
+			if path[0] == "":
+				cur_letter = inp[0]
+				cur_state = start_state
+				remaining = inp[1:]
+				# make sure the first thing isnt empty string
+				path = []
+			else:
+				cur_letter = remaining[0]
+				cur_state = path[-1]
+				remaining = remaining[1:]
+
+
+			print(cur_state)
+			print(cur_letter)
+			next_state = dfa.next_state(cur_letter, current= cur_state)
+
+			path.append(next_state)
+			form.path.data = ",".join(path)
+			form.remaining.data = remaining
+
+			if next_state:
+				# nothing left in string
+				if len(remaining) == 0:
+					if next_state in accept_states:
+						form.result.data = "ACCEPT"
+						graph = dfa.get_svg(current = next_state, completed=True)
+					else:
+						form.result.data = "REJECT"
+						graph = dfa.get_svg(current = next_state, stopped=True)
+				else:
+					graph = dfa.get_svg(current = next_state)
+
+			else:
+				form.result.data = "REJECT"
+				graph = dfa.get_svg(current = cur_state, stopped = True)
+
+
+			
+
+		elif form.simulate.data:
+
+			result, path = dfa.simulate(form.string_input.data)
+
+			form.remaining.data = ""
+			form.path.data = ",".join(path)
+			form.result.data = "ACCEPT" if result else "REJECT"
+
+
+			if len(path) == 0:
+				graph = dfa.get_svg(current = start_state, stopped = True)
+			else:
+				last_state = path[-1]
+				if result:
+					graph = dfa.get_svg(current = last_state, completed = True)
+				else:
+					graph = dfa.get_svg(current = last_state, stopped = True)
+
+
+		elif form.reset.data:
+
+			form.string_input.data = ""
+			form.result.data = ""
+			form.path.data = ""
+			form.remaining.data = ""
+
+
+
+		return render_template('dfa.html', form = form, graph=graph, transitions = html_transitions, minimized_graph=minimized_graph)
+
+	return render_template('dfa.html', form = form, transitions = {})
 
 @app.route("/nfa")
 def nfa():
