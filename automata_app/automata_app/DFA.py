@@ -37,11 +37,7 @@ class DFA:
 		path = [start]
 		curr = start
 		for s in string:
-			print(s)
-			print(curr)
 			next_state = self.next_state(s, curr)
-			print(next_state)
-			print()
 			if next_state :
 				path.append(next_state)
 				curr = next_state
