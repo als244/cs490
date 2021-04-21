@@ -3,6 +3,7 @@ from flask import render_template, jsonify, request, url_for, redirect
 from automata_app.forms import *
 from collections import defaultdict
 from automata_app.DFA import *
+from automata_app.NFA import *
 
 
 @app.route("/")
@@ -25,10 +26,6 @@ def createDFA():
 		form.accept_states.choices = [("", "")]
 
 	if request.method == "POST":
-
-
-		print(request.form)
-
 
 		dfa_states = states.split(",")
 
@@ -82,8 +79,6 @@ def createDFA():
 				remaining = remaining[1:]
 
 
-			print(cur_state)
-			print(cur_letter)
 			next_state = dfa.next_state(cur_letter, current= cur_state)
 
 			path.append(next_state)
@@ -141,10 +136,73 @@ def createDFA():
 
 	return render_template('dfa.html', form = form, transitions = {})
 
-@app.route("/nfa")
+@app.route("/nfa", methods=["GET", "POST"])
 def nfa():
-	return render_template('nfa.html')
+	
+	form = NFAForm()
 
-@app.route("/turingMachine")
-def turingMachine():
-	return render_template('turingMachine.html')
+	states = form.states.data
+	alphabet = form.alphabet.data
+	start_state = form.start_state.data
+	accept_states = form.accept_states.data
+
+
+	if accept_states is None:
+		form.accept_states.choices = [("", "")]
+
+	if request.method == "POST":
+
+		nfa_states = states.split(",")
+
+		# fill form back out
+		form.start_state.choices = [(s, s) for s in nfa_states]
+		form.accept_states.choices = [(s, s) for s in nfa_states]
+
+		alphabet = alphabet.split(",")
+
+		transitions = {}
+		html_transitions = {}
+		for s in nfa_states:
+			for l in alphabet:
+				rule_id = s + ";" + l
+				if len(request.form[rule_id]) > 0:
+					transitions[(s, l)] = request.form[rule_id].split(",")
+					html_transitions[rule_id] = request.form[rule_id]
+
+
+
+		nfa = NFA(nfa_states, alphabet, transitions, start_state, accept_states)
+		
+
+		graph = nfa.get_svg()
+
+		converted_graph = None
+		
+
+		if form.convert.data:
+			dfa = nfa.convert_to_dfa()
+			converted_graph = dfa.get_svg()
+
+		elif form.simulate.data:
+
+			paths = nfa.simulate(form.string_input.data)
+			path_str = "\n".join([",".join(p) for p in paths])
+			
+			if len(paths) > 0:
+				form.paths.data = path_str
+			else:
+				form.paths.data = "NONE"
+
+			form.result.data = "ACCEPT" if len(paths) > 0 else "REJECT"
+
+		elif form.reset.data:
+
+			form.string_input.data = ""
+			form.result.data = ""
+			form.paths.data = ""
+
+
+		return render_template('nfa.html', form = form, graph=graph, transitions = html_transitions, converted_graph=converted_graph)
+
+	return render_template('nfa.html', form = form, transitions = {})
+

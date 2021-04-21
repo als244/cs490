@@ -23,15 +23,8 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
       <div class="navbar-nav nav-fill">
-        <div class="nav-item dropdown active">
-          <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown">
-            Finite State Automata <span class="caret"></span></a>
-            <div class="dropdown-menu">
-              <a class="dropdown-item" href={{ url_for('createDFA') }}>DFA</a>
-              <a class="dropdown-item" href={{ url_for('nfa') }}>NFA</a>
-            </div>
-          </div>
-          <a class="nav-item nav-link active" href={{ url_for('turingMachine') }}>Turing Machine</a>
+          <a class="nav-item nav-link active" href={{ url_for('createDFA') }}>DFA</a>
+          <a class="nav-item nav-link active" href={{ url_for('nfa') }}>NFA</a>
       </div>
     </div>
   </nav>

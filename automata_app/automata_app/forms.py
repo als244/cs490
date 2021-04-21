@@ -9,25 +9,39 @@ class MultiCheckboxField(SelectMultipleField):
     option_widget = widgets.CheckboxInput()
 
 
-class DFAStateTransitionForm(FlaskForm):
-	source_state = SelectField("Source State", choices=[("", "")])
-	# multiple select for NFA
-	destination_state = SelectField("Destination State", choices = [("", "")])
-	transition = SelectField("Transition Label", choices = [("", "")])
 
-	
+class DFAForm(FlaskForm):
 
-class createDFAForm(FlaskForm):
-
-	states = StringField("States", validators=[DataRequired()])
-
-	alphabet = StringField("Alphabet", validators=[DataRequired()])
-
+	states = StringField("States (e.g 'A,B,C')", validators=[DataRequired()])
+	alphabet = StringField("Alphabet (e.g '0,1,2')", validators=[DataRequired()])
 	start_state = SelectField("Start State", choices = [("", "")])
-
 	accept_states = MultiCheckboxField('Accepting States')
+	create = SubmitField("Create DFA")
+	minimize = SubmitField("Minimize")
+	string_input = StringField("Input")
+	simulate = SubmitField("Simulate")
+	step = SubmitField("Step")
+	remaining = StringField("Remaining")
+	path = StringField("Path")
+	result = StringField("Result")
+	reset = SubmitField("Reset")
 
-	# will be 
-	transitions =  FieldList(FormField(DFAStateTransitionForm), min_entries=1)
 
-	submit = SubmitField("Create DFA")
+class NFAForm(FlaskForm):
+
+	states = StringField("States (e.g 'A,B,C')", validators=[DataRequired()])
+	alphabet = StringField("Alphabet (e.g '0,1,2')", validators=[DataRequired()])
+	start_state = SelectField("Start State", choices = [("", "")])
+	accept_states = MultiCheckboxField('Accepting States')
+	create = SubmitField("Create NFA")
+	string_input = StringField("Input")
+	simulate = SubmitField("Simulate")
+	paths = TextAreaField("Paths")
+	result = StringField("Result")
+	reset = SubmitField("Reset")
+	convert = SubmitField("Convert to DFA")
+
+
+
+
+

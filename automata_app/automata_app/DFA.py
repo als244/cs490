@@ -38,7 +38,7 @@ class DFA:
 		curr = start
 		for s in string:
 			next_state = self.next_state(s, curr)
-			if next_state :
+			if next_state:
 				path.append(next_state)
 				curr = next_state
 			else:
@@ -51,7 +51,6 @@ class DFA:
 
 	def moore_reduction(self):
 		P = [set(self.states) - set(self.accept), set(self.accept)]
-		print(P)
 		new_P = None
 		n = 0
 		while new_P != P:
@@ -173,19 +172,19 @@ class DFA:
 		return g.pipe(format='svg').decode('utf-8')
 
 
-
-states = ["0", "1", "2", "3", "4", "5", "6"]
-alphabet = ["a", "b"]
-transitions = {("0", "a"): "1", ("0", "b"): "4", 
-				("1", "a"): "5", ("1", "b"): "2", 
-				("2", "a"): "0", ("2", "b"): "2", 
-				("3", "a"): "6", ("3", "b"): "4", 
-				("4", "a"): "2", ("4", "b"): "5", 
-				("5", "a"): "5", ("5", "b"): "3", 
-				("6", "a"): "5", ("6", "b"): "2"}
-start = "0"
-accept = ["2"]
-dfa = DFA(states, alphabet, transitions, start, accept)
+## EXAMPLE USAGE
+# states = ["0", "1", "2", "3", "4", "5", "6"]
+# alphabet = ["a", "b"]
+# transitions = {("0", "a"): "1", ("0", "b"): "4", 
+# 				("1", "a"): "5", ("1", "b"): "2", 
+# 				("2", "a"): "0", ("2", "b"): "2", 
+# 				("3", "a"): "6", ("3", "b"): "4", 
+# 				("4", "a"): "2", ("4", "b"): "5", 
+# 				("5", "a"): "5", ("5", "b"): "3", 
+# 				("6", "a"): "5", ("6", "b"): "2"}
+# start = "0"
+# accept = ["2"]
+# dfa = DFA(states, alphabet, transitions, start, accept)
 
 
 

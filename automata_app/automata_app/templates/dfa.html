@@ -34,7 +34,7 @@
 					</div>
 				</div>
 				<div class="col-auto">
-					Transitions:
+					Transitions (leave blank or e.g. 'C'):
 					<br></br>
 					<div data-toggle="fieldset" id="transition-fieldset">
 						<table class="table table-bordered" id="transitions">
@@ -242,11 +242,8 @@
 		// clear table
 		for (var i = 1; i < n_rows; i++){
 			for (var j = 1; j < transitions.rows[0].cells.length; j++){
-				console.log(transitions.rows[0])
 				if (transitions.rows[1].cells[j] && transitions.rows[1].cells[j].childNodes[0]){
-					console.log(transitions.rows[1].cells[j].childNodes[0].id);
 					old_trans[transitions.rows[1].cells[j].childNodes[0].id] = transitions.rows[1].cells[j].childNodes[0].value;
-					console.log(transitions.rows[1].cells[j].childNodes[0].value);
 				}
 				
 			}
