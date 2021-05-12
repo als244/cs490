@@ -1,6 +1,6 @@
 from collections import defaultdict
 from graphviz import *
-from automata_app.DFA import *
+import DFA
 
 class NFA: 
 
@@ -9,6 +9,7 @@ class NFA:
 		self.alphabet = alphabet
 		# map from (state, transition letter) -> [states]
 		self.transitions = transitions
+		# array of starting states
 		self.start = start
 		self.accept = accept
 		self.inverse_trans = defaultdict(list)
@@ -30,7 +31,8 @@ class NFA:
 	# if true returns a list of paths that are valid
 	def simulate(self, string):
 		paths = []
-		self.find_paths(string, [self.start], 0, paths)
+		for s in self.start:
+			self.find_paths(string, [s], 0, paths)
 		return paths
 
 	# DFS for valid paths
@@ -57,7 +59,7 @@ class NFA:
 		
 
 		## state of states that have been seen
-		seen = [tuple(self.start)]
+		seen = self.start
 
 		added_to_table = set()
 
@@ -106,8 +108,6 @@ class NFA:
 			dfa_transitions[(source_str, k[1])] = dest_str
 
 
-
-
 		dfa = DFA(dfa_states, self.alphabet, dfa_transitions, self.start, dfa_accept)
 		return dfa
 
@@ -129,29 +129,31 @@ class NFA:
 				color = 'yellow'
 
 
-		if current is None or current == self.start:
+		if current is None or current in self.start:
 			start_color = color
-			if self.start in self.accept:
-				g.node(self.start, shape='doublecircle', color=start_color, style='filled')
-			else:
-				g.node(self.start, color=start_color, style='filled')
+			for s in self.start:
+				if s in self.accept:
+					g.node(s, shape='doublecircle', color=start_color, style='filled')
+				else:
+					g.node(s, color=start_color, style='filled')
 
 		else:
-			if self.start in self.accept:
-				g.node(self.start, shape='doublecircle')
-			else:
-				g.node(self.start)
+			for s in self.start:
+				if s in self.accept:
+					g.node(s, shape='doublecircle')
+				else:
+					g.node(s)
 
 
 		for s in self.accept:
-			if s != self.start:
+			if s not in self.start:
 				if s == current:
 					g.node(s, color = color, shape='doublecircle', style='filled')
 				else:
 					g.node(s, shape='doublecircle')
 
 		for s in self.states:
-			if s not in self.accept and s != self.start:
+			if s not in self.accept and s not in self.start:
 				if s == current:
 					g.node(s, s, color=color, style='filled')
 				else:

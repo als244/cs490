@@ -171,7 +171,7 @@ def nfa():
 
 
 
-		nfa = NFA(nfa_states, alphabet, transitions, start_state, accept_states)
+		nfa = NFA(nfa_states, alphabet, transitions, [start_state], accept_states)
 		
 
 		graph = nfa.get_svg()
